@@ -9,7 +9,7 @@ const youtube = new YouTube(youtube_api_key);
 const queue = new Map();
 
 const embed = new Discord.RichEmbed()
-    .setColor('#808080')
+    .setColor('#808080');
 
 client.on('warn', console.warn);
 
@@ -112,7 +112,7 @@ client.on('message', async message =>
                 try 
                 {
                     var videos = await youtube.searchVideos(searchString, 1);
-                    var video = await youtube.getVideoByID(videos[0].id);
+                    video = await youtube.getVideoByID(videos[0].id);
                 } 
                 catch (err) 
                 {
@@ -150,13 +150,13 @@ client.on('message', async message =>
 
         try 
         {
-            var video = await youtube.getVideo(url);
+            video = await youtube.getVideo(url);
         } 
         catch (error) 
         {
             try 
             {
-                var videos = await youtube.searchVideos(searchString, 10);
+                videos = await youtube.searchVideos(searchString, 10);
                 let index = 0;
                 const searchtext = new Discord.RichEmbed()
                     .setColor('#808080')
@@ -182,7 +182,7 @@ client.on('message', async message =>
                     return message.channel.send(embed);
                 }
                 const videoIndex = parseInt(response.first().content);
-                var video = await youtube.getVideoByID(videos[videoIndex - 1].id);
+                video = await youtube.getVideoByID(videos[videoIndex - 1].id);
             } 
             catch (err) 
             {
