@@ -1,23 +1,15 @@
-const fs = require('fs');
 const Util = require('discord.js');
 const Discord = require('discord.js');
-const { prefix, youtubekey, token } = require('./config.json');
+const { prefix, youtube_api_key, token } = require('./config.json');
 const YouTube = require('simple-youtube-api');
 const ytdl = require('ytdl-core');
-const ytdlDiscord = require('ytdl-core-discord');
 
 const client = new Discord.Client({ disableEveryone: true });
-const youtube = new YouTube(youtubekey);
-// client.commands = new Discord.Collection();
+const youtube = new YouTube(youtube_api_key);
 const queue = new Map();
-// const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
-// const cooldowns = new Discord.Collection();
 
-/* for (const file of commandFiles) 
-{
-	const command = require(`./commands/${file}`);
-	client.commands.set(command.name, command);
-} */
+const embed = new Discord.RichEmbed()
+    .setColor('#808080')
 
 client.on('warn', console.warn);
 
@@ -44,6 +36,7 @@ client.on('message', async message =>
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
     const args = message.content.split(' ');
+    message.content.toLowerCase();
     const searchString = args.slice(1).join(' ');
     const url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
     const serverQueue = queue.get(message.guild.id);
@@ -51,27 +44,62 @@ client.on('message', async message =>
     if(message.content.startsWith(`${prefix}play`))
     {
         const voiceChannel = message.member.voiceChannel;
-        if(!voiceChannel) return message.channel.send('You need to be in a voice channel to play music!');
+        if(!voiceChannel) 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('You need to be in a voice channel to play music!');
+            return message.channel.send(embed);
+        }
         const permissions = voiceChannel.permissionsFor(message.client.user);
         if(!permissions.has('CONNECT'))
         {
-            return message.channel.send('I cannot connect to your voice channel, make sure I have the proper permissions!');
+            embed.setColor('#ff0000');
+            embed.setDescription('Cannot connect to your voice channel, make sure I have the proper permissions!');
+            return message.channel.send(embed);
         }
         if(!permissions.has('SPEAK'))
         {
-            return message.channel.send('I cannot speak in this voice channel, make sure I have the proper permissions!');
+            embed.setColor('#ff0000');
+            embed.setDescription('Cannot speak in this voice channel, make sure I have the proper permissions!');
+            return message.channel.send(embed);
+        }
+        
+        if(serverQueue && !serverQueue.playing && !args[1]) 
+        {
+            serverQueue.playing = true;
+            serverQueue.connection.dispatcher.resume();
+            return message.react('▶');
+        }
+        
+        if(serverQueue && serverQueue.playing && !args[1])
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('No title or link was provided!');
+            return message.channel.send(embed);
         }
 
         if(url.match(/^https?:\/\/(www.youtube.com|youtube.com)\/playlist(.*)$/))
         {
             const playlist = await youtube.getPlaylist(url);
             const videos = await playlist.getVideos();
-            for(const video of Object.values())
+            let videonum = 0; 
+            for(const video of videos)
             {
-                const video2 = await youtube.getVideoByID(video.id);
-                await handleVideo(video2, message, voiceChannel, true);
+                try 
+                {
+                    ++videonum;
+                    const video2 = await youtube.getVideoByID(video.id);
+                    await handleVideo(video2, message, voiceChannel, true);    
+                } 
+                catch (error) 
+                {
+                    console.log(error);
+                    videos.shift();
+                }
             }
-            return message.channel.send(`Playlist: **${playlist.title}** has been added to the queue!`);
+            embed.setColor('#808080');
+            embed.setDescription(`✅ [${playlist.title}](${playlist.url}) - ${videonum} songs have been added to the queue!`);
+            return message.channel.send(embed);
         }
         else
         {
@@ -89,24 +117,35 @@ client.on('message', async message =>
                 catch (err) 
                 {
                     console.error(err);
-                    return message.channel.send('Could not find any search results.');
+                    embed.setColor('#ff0000');
+                    embed.setDescription('No search results were found.');
+                    return message.channel.send(embed);
                 }
             }
             return handleVideo(video, message, voiceChannel);
         }
     }
-    else if(message.content.startsWith(`${prefix}search`))
+    else if(message.content.startsWith(`${prefix}search`) || message.content.startsWith(`${prefix}find`))
     {
         const voiceChannel = message.member.voiceChannel;
-        if(!voiceChannel) return message.channel.send('You need to be in a voice channel to play music!');
+        if(!voiceChannel) 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('You need to be in a voice channel to play music!');
+            return message.channel.send(embed);
+        }
         const permissions = voiceChannel.permissionsFor(message.client.user);
         if(!permissions.has('CONNECT'))
         {
-            return message.channel.send('I cannot connect to your voice channel, make sure I have the proper permissions!');
+            embed.setColor('#ff0000');
+            embed.setDescription('Cannot connect to your voice channel, make sure I have the proper permissions!');
+            return message.channel.send(embed);
         }
         if(!permissions.has('SPEAK'))
         {
-            return message.channel.send('I cannot speak in this voice channel, make sure I have the proper permissions!');
+            embed.setColor('#ff0000');
+            embed.setDescription('Cannot speak in this voice channel, make sure I have the proper permissions!');
+            return message.channel.send(embed);
         }
 
         try 
@@ -119,12 +158,13 @@ client.on('message', async message =>
             {
                 var videos = await youtube.searchVideos(searchString, 10);
                 let index = 0;
-                message.channel.send(`
-__**Song Selection:**__
-${videos.map(video2 => `**${++index} -** ${video2.title}`).join('\n')}
-
-Please provide a value to select one of the search results ranging from 1-10.
-                `);
+                const searchtext = new Discord.RichEmbed()
+                    .setColor('#808080')
+                    .setTitle('__**Song Selection:**__')
+                    .setDescription(`${videos.map(video2 => `**${++index} -** [${Util.escapeMarkdown(video2.title)}](${video2.url})`).join('\n')} 
+                    
+                    Please provide a value to select one of the search results ranging from 1-10.`);
+                message.channel.send(searchtext);
 
                 try 
                 {
@@ -137,7 +177,9 @@ Please provide a value to select one of the search results ranging from 1-10.
                 catch (err) 
                 {
                     console.error(err);
-                    return message.channel.send('No or invalid value entered, cancelling video selection.');
+                    embed.setColor('#ff0000');
+                    embed.setDescription('No or invalid value entered, cancelling video selection.');
+                    return message.channel.send(embed);
                 }
                 const videoIndex = parseInt(response.first().content);
                 var video = await youtube.getVideoByID(videos[videoIndex - 1].id);
@@ -145,48 +187,118 @@ Please provide a value to select one of the search results ranging from 1-10.
             catch (err) 
             {
                 console.error(err);
-                return message.channel.send('Could not find any search results.');
+                embed.setColor('#ff0000');
+                embed.setDescription('No search results were found.');
+                return message.channel.send(embed);
             }
         }
         return handleVideo(video, message, voiceChannel);
     }
     else if(message.content.startsWith(`${prefix}skip`))
     {
-        if(!message.member.voiceChannel) return message.channel.send('You are not in a voice channel!');
-        if(!serverQueue) return message.channel.send('There is nothing playing that can be skipped.');
+        if(!message.member.voiceChannel) 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('You are not in a voice channel!');
+            return message.channel.send(embed);
+        }
+        if(!serverQueue) 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('There is nothing playing that can be skipped.');
+            return message.channel.send(embed);
+        }
         serverQueue.connection.dispatcher.end('Skip command used!');
         return;
     }
-    else if(message.content.startsWith(`${prefix}stop`))
+    else if(message.content.startsWith(`${prefix}stop`) || message.content.startsWith(`${prefix}leave`) || message.content.startsWith(`${prefix}disconnect`))
     {
-        if(!message.member.voiceChannel) return message.channel.send('You are not in a voice channel!');
-        if(!serverQueue) return message.channel.send('There is nothing playing that can be stopped.');
+        if(!message.member.voiceChannel) 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('You are not in a voice channel!');
+            return message.channel.send(embed);
+        }
+        if(!serverQueue) 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('There is nothing playing that can be stopped.');
+            return message.channel.send(embed);
+        }
         serverQueue.songs = [];
         serverQueue.connection.dispatcher.end('Stop command used!');
         return;
     }
-    else if(message.content.startsWith(`${prefix}np`))
+    else if(message.content.startsWith(`${prefix}np`) || message.content.startsWith(`${prefix}song`) || message.content.startsWith(`${prefix}nowplaying`) || message.content.startsWith(`${prefix}playing`) || message.content.startsWith(`${prefix}currentsong`) || message.content.startsWith(`${prefix}current`))
     {
-        if(!serverQueue) return message.channel.send('There is nothing playing.');
-        return message.channel.send(`Now playing: **${serverQueue.songs[0].title}**`);
+        if(!serverQueue) 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('There is nothing currently playing.');
+            return message.channel.send(embed);
+        }
+
+        const nptext = new Discord.RichEmbed()
+            .setColor('#808080')
+            .setTitle('Now Playing')
+            .setDescription(`[${serverQueue.songs[0].title}](${serverQueue.songs[0].url}) [${serverQueue.songs[0].requested}]`);
+        return message.channel.send(nptext);
     }
     else if(message.content.startsWith(`${prefix}volume`))
     {
-        if(!serverQueue) return message.channel.send('There is nothing playing.');
-        if(!args[1]) return message.channel.send(`The current volume is: ${serverQueue.volume}`);
-        serverQueue.volume = args[1];
-        serverQueue.connection.dispatcher.setVolumeLogarithmic(args[1] / 5);
-        return message.channel.send(`Volume set to **${serverQueue.volume}**`);
+        const voiceChannel = message.member.voiceChannel;
+        if(!voiceChannel) 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('You need to be in a voice channel to change the volume!');
+            return message.channel.send(embed);
+        }
+        if(!serverQueue) 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('There is nothing currently playing.');
+            return message.channel.send(embed);
+        }
+        if(!args[1]) 
+        {
+            embed.setColor('#808080');
+            embed.setDescription(`Volume: **${serverQueue.volume}**`);
+            return message.channel.send(embed);
+        }
+
+        if(parseInt(args[1]) <= 5 && parseInt(args[1]) >= 1)
+        {
+            serverQueue.volume = args[1];
+            serverQueue.connection.dispatcher.setVolumeLogarithmic(args[1] / 5);
+    
+            embed.setColor('#808080');
+            embed.setDescription(`Volume set to: **${serverQueue.volume}**`);
+            return message.channel.send(embed);
+        }
+        else 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription(`Please set volume using values of 1-5. Current volume is: **${serverQueue.volume}**`);
+            return message.channel.send(embed);
+        }
     }
     else if(message.content.startsWith(`${prefix}queue`))
     {
-        if(!serverQueue) return message.channel.send('There is nothing playing.');
-        return message.channel.send(`
-__**Song Queue:**__
-${serverQueue.songs.map(song => `**-** ${song.title}`).join('\n')}
+        if(!serverQueue) 
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('There is nothing currently playing.');
+            return message.channel.send(embed);
+        }
 
-**Now playing:** ${serverQueue.songs[0].title}
-        `);
+        const queuetext = new Discord.RichEmbed()
+            .setColor('#808080')
+            .setTitle('__**Song Queue:**__')
+            .setDescription(`${serverQueue.songs.map(song => `**-** ${song.title}`).join('\n')}
+
+            **Now Playing:** ${serverQueue.songs[0].title}`);
+
+        return message.channel.send(queuetext);
     }
     else if(message.content.startsWith(`${prefix}pause`))
     {
@@ -194,9 +306,14 @@ ${serverQueue.songs.map(song => `**-** ${song.title}`).join('\n')}
         {
             serverQueue.playing = false;
             serverQueue.connection.dispatcher.pause();
-            return message.channel.send('Music paused.');
+            return message.react('⏸');
         }
-        return message.channel.send('There is nothing playing.');
+        else
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('There is nothing currently playing.');
+            return message.channel.send(embed);
+        }
     }
     else if(message.content.startsWith(`${prefix}resume`))
     {
@@ -204,9 +321,14 @@ ${serverQueue.songs.map(song => `**-** ${song.title}`).join('\n')}
         {
             serverQueue.playing = true;
             serverQueue.connection.dispatcher.resume();
-            return message.channel.send('Music resumed.');
+            return message.react('▶');
         }
-        return message.channel.send('There is nothing playing.');
+        else
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('There is nothing currently playing.');
+            return message.channel.send(embed);
+        }
     }
     /* const commandName = args.shift().toLowerCase();
 
@@ -263,6 +385,7 @@ async function handleVideo(video, message, voiceChannel, playlist = false)
         id: video.id,
         title: Util.escapeMarkdown(video.title),
         url: `https://www.youtube.com/watch?v=${video.id}`,
+        requested: message.author,
     };
 
     if(!serverQueue)
@@ -288,22 +411,32 @@ async function handleVideo(video, message, voiceChannel, playlist = false)
         } 
         catch(error)
         {
-            console.error(`I could not join the voice channel: ${error}`);
+            embed.setColor('#ff0000');
+            embed.setDescription(`Could not join the voice channel: ${error}`);
+            console.error(`Could not join the voice channel: ${error}`);
             queue.delete(message.guild.id);
-            return message.channel.send(`I could not join the voice channel: ${error}`);
+            return message.channel.send(embed);
         }
     }
     else
     {
         serverQueue.songs.push(song);
         console.log(serverQueue.songs);
-        if(playlist) return;
-        else return message.channel.send(`**${song.title}** has been added to the queue!`);
+        if(playlist) 
+        {
+            return;
+        }
+        else 
+        {
+            embed.setColor('#808080');
+            embed.setDescription(`✅ [${song.title}](${song.url}) has been added to the queue! [${song.requested}]`);
+            return message.channel.send(embed);
+        }
     }
     return;
 }
 
-async function play(guild, song)
+function play(guild, song)
 {
     const serverQueue = queue.get(guild.id);
 
@@ -316,18 +449,29 @@ async function play(guild, song)
 
     console.log(serverQueue.songs);
 
-    const dispatcher = serverQueue.connection.playOpusStream(await ytdlDiscord(song.url), { passes: 3 })
+    const dispatcher = serverQueue.connection.playStream(ytdl(song.url), { passes: 3, bitrate: 64000 })
     .on('end', reason => 
     {
-        if(reason == 'Stream is not generating quickly enough.') console.log('Song ended!');
-        else console.log(reason);
+        if(reason == 'Stream is not generating quickly enough.') 
+        {
+            console.log('Song ended!');
+        }
+        else 
+        {
+            console.log(reason);
+        }
         serverQueue.songs.shift();
         play(guild, serverQueue.songs[0]);
     })
     .on('error', error => console.error(error));
     dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
 
-    serverQueue.textChannel.send(`Now playing: **${song.title}**`);
+    const nptext = new Discord.RichEmbed()
+        .setColor('#808080')
+        .setTitle('Now Playing')
+        .setDescription(`[${song.title}](${song.url}) [${song.requested}]`);
+
+    serverQueue.textChannel.send(nptext);
 }
 
 client.login(token);
