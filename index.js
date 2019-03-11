@@ -35,8 +35,8 @@ client.on('message', async message =>
 {
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-    const args = message.content.split(' ');
-    message.content.toLowerCase();
+    const args = message.content.split(/ +/);
+    message.content = message.content.toLowerCase();
     const searchString = args.slice(1).join(' ');
     const url = args[1] ? args[1].replace(/<(.+)>/g, '$1') : '';
     const serverQueue = queue.get(message.guild.id);
@@ -72,6 +72,13 @@ client.on('message', async message =>
         }
         
         if(serverQueue && serverQueue.playing && !args[1])
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('No title or link was provided!');
+            return message.channel.send(embed);
+        }
+
+        if(!args[1])
         {
             embed.setColor('#ff0000');
             embed.setDescription('No title or link was provided!');
@@ -194,7 +201,7 @@ client.on('message', async message =>
         }
         return handleVideo(video, message, voiceChannel);
     }
-    else if(message.content.startsWith(`${prefix}skip`))
+    else if(message.content.startsWith(`${prefix}skip`) || message.content.startsWith(`${prefix}next`))
     {
         if(!message.member.voiceChannel) 
         {
@@ -227,7 +234,7 @@ client.on('message', async message =>
         }
         serverQueue.songs = [];
         serverQueue.connection.dispatcher.end('Stop command used!');
-        return;
+        return message.react('🛑');
     }
     else if(message.content.startsWith(`${prefix}np`) || message.content.startsWith(`${prefix}song`) || message.content.startsWith(`${prefix}nowplaying`) || message.content.startsWith(`${prefix}playing`) || message.content.startsWith(`${prefix}currentsong`) || message.content.startsWith(`${prefix}current`))
     {
@@ -291,11 +298,12 @@ client.on('message', async message =>
             return message.channel.send(embed);
         }
 
+        let pos = 0;
         const queuetext = new Discord.RichEmbed()
             .setColor('#808080')
             .setTitle('__**Song Queue:**__')
-            .setDescription(`${serverQueue.songs.map(song => `**-** ${song.title}`).join('\n')}
-
+            .setDescription(`${serverQueue.songs.map(song => `**${++pos}) ** ${song.title}`).join('\n')}
+            
             **Now Playing:** ${serverQueue.songs[0].title}`);
 
         return message.channel.send(queuetext);
@@ -322,6 +330,51 @@ client.on('message', async message =>
             serverQueue.playing = true;
             serverQueue.connection.dispatcher.resume();
             return message.react('▶');
+        }
+        else
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('There is nothing currently playing.');
+            return message.channel.send(embed);
+        }
+    }
+    else if(message.content.startsWith(`${prefix}help`))
+    {
+        const helptext = new Discord.RichEmbed()
+            .setColor('#808080')
+            .setTitle('Commands')
+            .setDescription('- **!play [link/title/playlist]**: Plays specified YouTube link or playlist.\n- **!search [title]**: Displays top 10 YouTube search results and allows user to select using values of 1-10. Timeout of 10 seconds upon receiving no selection.\n- **!skip**: Skips current song.\n- **!pause**: Pauses current song.\n- **!queue**: Displays current queue.\n- **!resume**: Resumes current song.\n- **!song**: Displays current song and user that requested it.\n- **!shuffle**: Shuffles current queue.\n- **!stop**: Stops all music and clears queue.\n- **!loop**: Toggles loop on current song. Resets on skip.\n- **!volume**: Displays current volume.\n- **!volume [number]**: Changes current volume to a value between 1-5.');
+
+        return message.channel.send(helptext);
+    }
+    else if(message.content.startsWith(`${prefix}shuffle`))
+    {
+        if(serverQueue && serverQueue.playing) 
+        {
+            shuffle(serverQueue.songs);
+            return message.react('🔀');
+        }
+        else
+        {
+            embed.setColor('#ff0000');
+            embed.setDescription('There is nothing currently playing.');
+            return message.channel.send(embed);
+        }
+    }
+    else if(message.content.startsWith(`${prefix}loop`) || message.content.startsWith(`${prefix}repeat`))
+    {
+        if(serverQueue && serverQueue.playing) 
+        {
+            if(serverQueue.loop == true)
+            {
+                serverQueue.loop = false;
+                return message.react('❌');
+            }
+            else
+            {
+                serverQueue.loop = true;
+                return message.react('🔁');
+            }
         }
         else
         {
@@ -386,7 +439,10 @@ async function handleVideo(video, message, voiceChannel, playlist = false)
         title: Util.escapeMarkdown(video.title),
         url: `https://www.youtube.com/watch?v=${video.id}`,
         requested: message.author,
+        duration: video.duration,
     };
+
+    console.log(song.duration);
 
     if(!serverQueue)
     {
@@ -396,7 +452,7 @@ async function handleVideo(video, message, voiceChannel, playlist = false)
             voiceChannel: voiceChannel,
             connection: null,
             songs: [],
-            volume: 5,
+            volume: 1,
             playing: true,
         };
         queue.set(message.guild.id, queueConstruct);
@@ -420,7 +476,10 @@ async function handleVideo(video, message, voiceChannel, playlist = false)
     }
     else
     {
-        serverQueue.songs.push(song);
+        if(!serverQueue.loop)
+        {
+            serverQueue.songs.push(song);
+        }
         console.log(serverQueue.songs);
         if(playlist) 
         {
@@ -449,29 +508,54 @@ function play(guild, song)
 
     console.log(serverQueue.songs);
 
-    const dispatcher = serverQueue.connection.playStream(ytdl(song.url), { passes: 3, bitrate: 64000 })
+    const dispatcher = serverQueue.connection.playStream(ytdl(song.url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1 << 25 }), { passes: 3, highWaterMark: 1, bitrate: 64000 })
     .on('end', reason => 
     {
         if(reason == 'Stream is not generating quickly enough.') 
         {
+            dispatcher.end();
             console.log('Song ended!');
         }
         else 
         {
             console.log(reason);
         }
-        serverQueue.songs.shift();
+        if(serverQueue.loop && reason == 'Skip command used!')
+        {
+            serverQueue.loop = false;
+            serverQueue.songs.shift();
+        }
+        else if(!serverQueue.loop)
+        {
+            serverQueue.songs.shift();
+        }
         play(guild, serverQueue.songs[0]);
     })
     .on('error', error => console.error(error));
     dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
-
+    
     const nptext = new Discord.RichEmbed()
         .setColor('#808080')
         .setTitle('Now Playing')
         .setDescription(`[${song.title}](${song.url}) [${song.requested}]`);
 
     serverQueue.textChannel.send(nptext);
+}
+
+function shuffle(songs) 
+{
+    var j, temp, i;
+    for (i = songs.length - 1; i > 1; i--) 
+    {
+        j = Math.floor(Math.random() * (i + 1));
+        while(j == 0)
+        {
+            j = Math.floor(Math.random() * (i + 1));
+        }
+        temp = songs[i];
+        songs[i] = songs[j];
+        songs[j] = temp;
+    }
 }
 
 client.login(token);

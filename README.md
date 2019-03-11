@@ -4,18 +4,20 @@
 ## Commands
 
 - `!help` Sends a message detailing commands.
-- `!play [link/title/playlist]` Plays specified YouTube link or playlist.
+- `!play [link/title/playlist]` Plays specified YouTube link or playlist. Uses first search result on YouTube if user requests a song title.
 - `!search [title]` Displays top 10 YouTube search results and allows user to select using values of 1-10. Timeout of 10 seconds upon receiving no selection.
 - `!skip` Skips current song.
 - `!pause` Pauses current song.
 - `!queue` Displays current queue.
 - `!resume` Resumes current song.
+- `!shuffle` Shuffles current queue.
 - `!song` Displays current song and user that requested it.
 - `!stop` Stops all music and clears queue.
+- `!loop` Toggles loop on current song. Resets on skip.
 - `!volume` Displays current volume.
 - `!volume [number]` Changes current volume to a value between 1-5.
 
 ## Developer
-**Mixtape** @[StealthNinjaX](https://github.com/stealthninjax).
+**Mixtape** @[StealthNinjaX](https://github.com/stealthninjax)
 
 Developed and maintained by StealthNinjaX.
