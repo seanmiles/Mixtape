@@ -1,11 +1,11 @@
 const Util = require('discord.js');
 const Discord = require('discord.js');
-const { prefix, youtube_api_key, token } = require('./config.json');
 const YouTube = require('simple-youtube-api');
 const ytdl = require('ytdl-core');
+const prefix = process.env.prefix;
 
 const client = new Discord.Client({ disableEveryone: true });
-const youtube = new YouTube(youtube_api_key);
+const youtube = new YouTube(process.env.youtube_api_key);
 const queue = new Map();
 
 const embed = new Discord.RichEmbed()
@@ -558,4 +558,4 @@ function shuffle(songs)
     }
 }
 
-client.login(token);
+client.login(process.env.token);
