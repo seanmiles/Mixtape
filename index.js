@@ -1,7 +1,6 @@
 const Util = require('discord.js');
 const Discord = require('discord.js');
 const YouTube = require('simple-youtube-api');
-const ytdl = require('ytdl-core');
 const ytdlDiscord = require('ytdl-core-discord');
 const prefix = process.env.prefix;
 
@@ -252,7 +251,8 @@ client.on('message', async message =>
             .setDescription(`[${serverQueue.songs[0].title}](${serverQueue.songs[0].url}) [${serverQueue.songs[0].requested}]`);
         return message.channel.send(nptext);
     }
-    else if(message.content.startsWith(`${prefix}volume`))
+    // Volume does not work with playOpusStream
+    /* else if(message.content.startsWith(`${prefix}volume`))
     {
         const voiceChannel = message.member.voiceChannel;
         if(!voiceChannel) 
@@ -289,7 +289,7 @@ client.on('message', async message =>
             embed.setDescription(`Please set volume using values of 1-5. Current volume is: **${serverQueue.volume}**`);
             return message.channel.send(embed);
         }
-    }
+    } */
     else if(message.content.startsWith(`${prefix}queue`))
     {
         if(!serverQueue) 
@@ -344,7 +344,7 @@ client.on('message', async message =>
         const helptext = new Discord.RichEmbed()
             .setColor('#808080')
             .setTitle('Commands')
-            .setDescription('- **!play [link/title/playlist]**: Plays specified YouTube link or playlist.\n- **!search [title]**: Displays top 10 YouTube search results and allows user to select using values of 1-10. Timeout of 10 seconds upon receiving no selection.\n- **!skip**: Skips current song.\n- **!pause**: Pauses current song.\n- **!queue**: Displays current queue.\n- **!resume**: Resumes current song.\n- **!song**: Displays current song and user that requested it.\n- **!shuffle**: Shuffles current queue.\n- **!stop**: Stops all music and clears queue.\n- **!loop**: Toggles loop on current song. Resets on skip.\n- **!volume**: Displays current volume.\n- **!volume [number]**: Changes current volume to a value between 1-5.');
+            .setDescription('- **!play [link/title/playlist]**: Plays specified YouTube link or playlist.\n- **!search [title]**: Displays top 10 YouTube search results and allows user to select using values of 1-10. Timeout of 10 seconds upon receiving no selection.\n- **!skip**: Skips current song.\n- **!pause**: Pauses current song.\n- **!queue**: Displays current queue.\n- **!resume**: Resumes current song.\n- **!song**: Displays current song and user that requested it.\n- **!shuffle**: Shuffles current queue.\n- **!stop**: Stops all music and clears queue.\n- **!loop**: Toggles loop on current song. Resets on skip.');
 
         return message.channel.send(helptext);
     }
@@ -369,12 +369,14 @@ client.on('message', async message =>
             if(serverQueue.loop == true)
             {
                 serverQueue.loop = false;
+                message.react('🔁');
                 return message.react('❌');
             }
             else
             {
                 serverQueue.loop = true;
-                return message.react('🔁');
+                message.react('🔁');
+                return message.react('✅');
             }
         }
         else
