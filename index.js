@@ -2,6 +2,7 @@ const Util = require('discord.js');
 const Discord = require('discord.js');
 const YouTube = require('simple-youtube-api');
 const ytdl = require('ytdl-core');
+const ytdlDiscord = require('ytdl-core-discord');
 const prefix = process.env.prefix;
 
 const client = new Discord.Client({ disableEveryone: true });
@@ -495,7 +496,7 @@ async function handleVideo(video, message, voiceChannel, playlist = false)
     return;
 }
 
-function play(guild, song)
+async function play(guild, song)
 {
     const serverQueue = queue.get(guild.id);
 
@@ -508,7 +509,7 @@ function play(guild, song)
 
     console.log(serverQueue.songs);
 
-    const dispatcher = serverQueue.connection.playStream(ytdl(song.url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1 << 25 }), { passes: 3, highWaterMark: 1, bitrate: 64000 })
+    const dispatcher = serverQueue.connection.playOpusStream(await ytdlDiscord(song.url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1 << 25 }), { passes: 3, highWaterMark: 1, bitrate: 64000 })
     .on('end', reason => 
     {
         if(reason == 'Stream is not generating quickly enough.') 
