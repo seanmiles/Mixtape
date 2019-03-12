@@ -14,8 +14,12 @@
 - `!song` Displays current song and user that requested it.
 - `!stop` Stops all music and clears queue.
 - `!loop` Toggles loop on current song. Resets on skip.
-- `!volume` Displays current volume.
-- `!volume [number]` Changes current volume to a value between 1-5.
+
+## Upcoming Features
+> Updated 03/12/19
+
+- Automatically or manually add songs to a bot-created, unlisted YouTube playlist
+- Better queue with scrolling
 
 ## Developer
 **Mixtape** @[StealthNinjaX](https://github.com/stealthninjax)
