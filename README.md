@@ -27,4 +27,3 @@
 ## Developer
 ### Sean Miles
 - GitHub: [@seanmiles](https://github.com/seanmiles)
-#### Developed and maintained by Sean Miles.
