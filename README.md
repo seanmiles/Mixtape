@@ -1,6 +1,8 @@
 # Mixtape <img src="https://cdn.discordapp.com/avatars/550769759155650561/c31a6977697ea226a5e6d227c7762480.png" align="right">
 > Music Bot for Discord
 
+> Developed using Node.js and Discord.js
+
 ## Commands
 
 - `!help` Sends a message detailing commands.
@@ -16,12 +18,13 @@
 - `!loop` Toggles loop on current song. Resets on skip.
 
 ## Upcoming Features
-> Updated 03/12/19
+> Updated 07/06/19
 
-- Automatically or manually add songs to a bot-created, unlisted YouTube playlist
-- Better queue with scrolling
+- [ ] Automatically or manually add songs to a bot-created, unlisted YouTube playlist
+- [ ] Better queue with scrolling
+- [ ] Jumping to a certain song in the queue
 
 ## Developer
-**Mixtape** @[StealthNinjaX](https://github.com/stealthninjax)
-
-Developed and maintained by StealthNinjaX.
+### Sean Miles
+- GitHub: [@seanmiles](https://github.com/seanmiles)
+#### Developed and maintained by Sean Miles.
