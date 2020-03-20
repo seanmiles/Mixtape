@@ -1,6 +1,6 @@
 # Mixtape <img src="https://cdn.discordapp.com/avatars/550769759155650561/c31a6977697ea226a5e6d227c7762480.png" align="right">
 > Music Bot for Discord
-
+> 
 > Developed using Node.js and Discord.js
 
 ## Commands
