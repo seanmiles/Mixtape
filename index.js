@@ -1,11 +1,11 @@
 const Util = require('discord.js');
 const Discord = require('discord.js');
 const YouTube = require('simple-youtube-api');
-const ytdlDiscord = require('ytdl-core-discord');
-const prefix = process.env.prefix;
+const ytdl = require('ytdl-core-discord');
+const prefix = process.env.PREFIX;
 
 const client = new Discord.Client({ disableEveryone: true });
-const youtube = new YouTube(process.env.youtube_api_key);
+const youtube = new YouTube(process.env.YOUTUBE_API_KEY);
 const queue = new Map();
 
 const embed = new Discord.RichEmbed()
@@ -46,20 +46,20 @@ client.on('message', async message =>
         const voiceChannel = message.member.voiceChannel;
         if(!voiceChannel) 
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('You need to be in a voice channel to play music!');
             return message.channel.send(embed);
         }
         const permissions = voiceChannel.permissionsFor(message.client.user);
         if(!permissions.has('CONNECT'))
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('Cannot connect to your voice channel, make sure I have the proper permissions!');
             return message.channel.send(embed);
         }
         if(!permissions.has('SPEAK'))
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('Cannot speak in this voice channel, make sure I have the proper permissions!');
             return message.channel.send(embed);
         }
@@ -73,14 +73,14 @@ client.on('message', async message =>
         
         if(serverQueue && serverQueue.playing && !args[1])
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('No title or link was provided!');
             return message.channel.send(embed);
         }
 
         if(!args[1])
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('No title or link was provided!');
             return message.channel.send(embed);
         }
@@ -124,7 +124,7 @@ client.on('message', async message =>
                 catch (err) 
                 {
                     console.error(err);
-                    embed.setColor('#ff0000');
+                    embed.setColor('#ffff00');
                     embed.setDescription('No search results were found.');
                     return message.channel.send(embed);
                 }
@@ -137,20 +137,20 @@ client.on('message', async message =>
         const voiceChannel = message.member.voiceChannel;
         if(!voiceChannel) 
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('You need to be in a voice channel to play music!');
             return message.channel.send(embed);
         }
         const permissions = voiceChannel.permissionsFor(message.client.user);
         if(!permissions.has('CONNECT'))
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('Cannot connect to your voice channel, make sure I have the proper permissions!');
             return message.channel.send(embed);
         }
         if(!permissions.has('SPEAK'))
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('Cannot speak in this voice channel, make sure I have the proper permissions!');
             return message.channel.send(embed);
         }
@@ -184,7 +184,7 @@ client.on('message', async message =>
                 catch (err) 
                 {
                     console.error(err);
-                    embed.setColor('#ff0000');
+                    embed.setColor('#ffff00');
                     embed.setDescription('No or invalid value entered, cancelling video selection.');
                     return message.channel.send(embed);
                 }
@@ -194,7 +194,7 @@ client.on('message', async message =>
             catch (err) 
             {
                 console.error(err);
-                embed.setColor('#ff0000');
+                embed.setColor('#ffff00');
                 embed.setDescription('No search results were found.');
                 return message.channel.send(embed);
             }
@@ -205,13 +205,13 @@ client.on('message', async message =>
     {
         if(!message.member.voiceChannel) 
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('You are not in a voice channel!');
             return message.channel.send(embed);
         }
         if(!serverQueue) 
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('There is nothing playing that can be skipped.');
             return message.channel.send(embed);
         }
@@ -222,13 +222,13 @@ client.on('message', async message =>
     {
         if(!message.member.voiceChannel) 
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('You are not in a voice channel!');
             return message.channel.send(embed);
         }
         if(!serverQueue) 
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('There is nothing playing that can be stopped.');
             return message.channel.send(embed);
         }
@@ -240,7 +240,7 @@ client.on('message', async message =>
     {
         if(!serverQueue) 
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('There is nothing currently playing.');
             return message.channel.send(embed);
         }
@@ -294,7 +294,7 @@ client.on('message', async message =>
     {
         if(!serverQueue) 
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('There is nothing currently playing.');
             return message.channel.send(embed);
         }
@@ -319,7 +319,7 @@ client.on('message', async message =>
         }
         else
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('There is nothing currently playing.');
             return message.channel.send(embed);
         }
@@ -334,7 +334,7 @@ client.on('message', async message =>
         }
         else
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('There is nothing currently playing.');
             return message.channel.send(embed);
         }
@@ -357,7 +357,7 @@ client.on('message', async message =>
         }
         else
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('There is nothing currently playing.');
             return message.channel.send(embed);
         }
@@ -381,7 +381,7 @@ client.on('message', async message =>
         }
         else
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription('There is nothing currently playing.');
             return message.channel.send(embed);
         }
@@ -470,7 +470,7 @@ async function handleVideo(video, message, voiceChannel, playlist = false)
         } 
         catch(error)
         {
-            embed.setColor('#ff0000');
+            embed.setColor('#ffff00');
             embed.setDescription(`Could not join the voice channel: ${error}`);
             console.error(`Could not join the voice channel: ${error}`);
             queue.delete(message.guild.id);
@@ -509,9 +509,9 @@ async function play(guild, song)
         return;
     }
 
-    console.log(serverQueue.songs);
+    //console.log(serverQueue.songs);
 
-    const dispatcher = serverQueue.connection.playOpusStream(await ytdlDiscord(song.url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1 << 25 }), { passes: 3, highWaterMark: 1, bitrate: 64000 })
+    const dispatcher = serverQueue.connection.playOpusStream(await ytdl(song.url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1 << 25 }))
     .on('end', reason => 
     {
         if(reason == 'Stream is not generating quickly enough.') 
@@ -561,4 +561,4 @@ function shuffle(songs)
     }
 }
 
-client.login(process.env.token);
+client.login(process.env.TOKEN);
