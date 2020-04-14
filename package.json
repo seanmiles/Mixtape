@@ -8,6 +8,7 @@
   "license": "ISC",
   "dependencies": {
     "discord.js": "^11.6.4",
+    "ffmpeg-binaries": "^4.1.1",
     "opusscript": "0.0.6",
     "simple-youtube-api": "^5.1.1",
     "ytdl-core-discord": "^1.2.0"
