@@ -26,4 +26,5 @@
 
 ## Developer
 ### Sean Miles
+- Website: [seanmiles.dev](https://seanmiles.dev)
 - GitHub: [@seanmiles](https://github.com/seanmiles)
