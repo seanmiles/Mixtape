@@ -17,13 +17,6 @@
 - `!stop` Stops all music and clears queue.
 - `!loop` Toggles loop on current song. Resets on skip.
 
-## Upcoming Features
-> Updated 07/06/19
-
-- [ ] Automatically or manually add songs to a bot-created, unlisted YouTube playlist
-- [ ] Better queue with scrolling
-- [ ] Jumping to a certain song in the queue
-
 ## Developer
 ### Sean Miles
 - Website: [seanmiles.dev](https://seanmiles.dev)

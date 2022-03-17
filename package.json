@@ -1,7 +1,7 @@
 {
   "name": "mixtape-bot",
   "version": "1.0.0",
-  "description": "🎧 Discord Music Bot - Supports YouTube videos/songs/playlists with commands for pause/resume, shuffling, searching, displaying queue, and skipping with more planned.",
+  "description": "🎧 Discord Music Bot - Play & search YouTube songs + playlists, featuring pause/resume, shuffle, skip, and queue display functionality.",
   "main": "index.js",
   "scripts": {},
   "author": "Sean Miles",

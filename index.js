@@ -17,7 +17,13 @@ client.on('error', console.error);
 
 client.on('ready', () =>
 {
-    client.user.setActivity('!help');
+    client.user.setPresence({
+        status: "online",
+        activity: {
+            name: "!help",
+            type: "LISTENING"
+        }
+    });
     console.log('Ready!');
 });
 
